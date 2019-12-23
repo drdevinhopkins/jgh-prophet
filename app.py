@@ -19,7 +19,7 @@ from urllib.request import urlopen
 # function to unnest json for each month
 def extract_json_weather_data(data):
     num_days = len(data)
-    print(num_days)
+    #print(num_days)
     # initialize df_month to store return data
     df_forecast = pd.DataFrame()
     for i in range(num_days):
@@ -122,15 +122,21 @@ def retrieve_future_data(api_key,location_list,frequency,location_label = False,
 ##################################
 
 def main():
+    st.title('Daily Visit Predictor')
+    my_placeholder = st.empty()
+    my_placeholder.text("Loading model...")
     pkl_path = "jgh-prophet-19-12-22.pkl"
 
     # read the Prophet model object
     with open(pkl_path, 'rb') as f:
         m = pickle.load(f)
 
-    st.title('JGH ED Visit Predictor')
-
-
+    
+    my_placeholder.text("Fetching the weather forecast...")
+    frequency = 24
+    api_key = '3d51d04f983a478e90f164916191012'
+    location_list = ['Montreal']
+    retrieve_future_data(api_key,location_list,frequency)
 
 
 
@@ -138,12 +144,9 @@ def main():
 
     weather_forecast['ds']=pd.to_datetime(weather_forecast['ds'])
 
-    st.header('Weather Forecast')
-    st.write(weather_forecast)
-
+    my_placeholder.text("Making predictions...")
     forecast = m.predict(weather_forecast)
     st.header('Predictions')
-    st.write(forecast[['ds', 'yhat']])
 
 
 
@@ -153,6 +156,14 @@ def main():
     fig = go.Figure(data=[go.Scatter(x=x, y=y)])
 
     st.plotly_chart(fig)
+    #st.write(forecast[['ds', 'yhat']])
+
+    st.header('Weather Forecast')
+    st.write(weather_forecast)
+    my_placeholder.text("")
+
+
+    
 
 if __name__ == "__main__":
     main()
