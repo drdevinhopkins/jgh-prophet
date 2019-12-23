@@ -1,0 +1,2 @@
+streamlit==0.51.0
+fbprophet==0.5
