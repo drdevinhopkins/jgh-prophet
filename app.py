@@ -112,7 +112,10 @@ def retrieve_future_data(api_key,location_list,frequency,location_label = False,
             df_this_city.columns.values[0] = 'date_time'    
         
         if (export_csv == True):
-            df_this_city.to_csv('./'+location+'-daily.csv', header=True, index=False) 
+            if frequency == 24:
+                df_this_city.to_csv('./'+location+'-daily.csv', header=True, index=False) 
+            elif frequency == 1:
+                df_this_city.to_csv('./'+location+'-hourly.csv', header=True, index=False)
             #print('\n\nexport '+location+' completed!\n\n')
         
         if (store_df == True):
@@ -127,33 +130,58 @@ def main():
 
     my_placeholder = st.empty()
     my_placeholder.text("Loading model...")
-    pkl_path = "daily-19-12-22.pkl"
+
+    if model_selectbox == 'Daily':
+        pkl_path = "daily-19-12-22.pkl"
+    elif model_selectbox == 'Hourly':
+        pkl_path = "hourly-19-12-22.pkl"
 
     # read the Prophet model object
     with open(pkl_path, 'rb') as f:
         m = pickle.load(f)
 
-    weather_forecast_on_file = pd.read_csv('Montreal-daily.csv')
-    #st.write("First weather date on file: "+weather_forecast_on_file.ds.min())
-    st.write('Today\'s date: '+str(datetime.now().astimezone(pytz.timezone('US/Eastern')).date()))
+    if model_selectbox == 'Daily':
+        weather_forecast_on_file = pd.read_csv('Montreal-daily.csv')
+    elif model_selectbox == 'Hourly':
+        weather_forecast_on_file = pd.read_csv('Montreal-hourly.csv')
 
-    if str(weather_forecast_on_file.ds.min()) == str(datetime.now().astimezone(pytz.timezone('US/Eastern')).date()):
+    st.write("First weather date on file: "+weather_forecast_on_file.ds.min())
+    now = datetime.now().astimezone(pytz.timezone('US/Eastern'))
+    mtl_now = now.replace(tzinfo=None)
+    local_now = datetime.now()
+    today = now.date()
+    st.write('Currently: '+str(now))
+    st.write('mtl_now: '+str(mtl_now))
+    st.write('local_now: '+str(local_now))
+
+    if str(weather_forecast_on_file.ds.min()) == str(today):
         st.write('Using weather forecast already on file')
         weather_forecast = weather_forecast_on_file
     else:
         my_placeholder.text("Fetching the weather forecast...")
-        frequency = 24
+        if model_selectbox == 'Daily':
+            frequency = 24
+        elif model_selectbox == 'Hourly':
+            frequency = 1
         api_key = '3d51d04f983a478e90f164916191012'
         location_list = ['Montreal']
+
         retrieve_future_data(api_key,location_list,frequency)
-        weather_forecast = pd.read_csv('Montreal-daily.csv')
+
+        if model_selectbox == 'Daily':
+            weather_forecast = pd.read_csv('Montreal-daily.csv')
+        elif model_selectbox == 'Hourly':
+            weather_forecast = pd.read_csv('Montreal-hourly.csv')
         weather_forecast['ds']=pd.to_datetime(weather_forecast['ds'])
 
     my_placeholder.text("Making predictions...")
-    forecast = m.predict(weather_forecast)
+    
+    if model_selectbox == 'Daily':
+        forecast = m.predict(weather_forecast)
+    elif model_selectbox == 'Hourly':
+        forecast = m.predict(weather_forecast[weather_forecast.ds>=mtl_now])
+
     st.header('Predictions')
-
-
 
     x = [str(a) for a in forecast.ds.to_list()]
     y = forecast.yhat.to_list()
