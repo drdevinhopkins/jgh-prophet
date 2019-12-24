@@ -112,7 +112,7 @@ def retrieve_future_data(api_key,location_list,frequency,location_label = False,
             df_this_city.columns.values[0] = 'date_time'    
         
         if (export_csv == True):
-            df_this_city.to_csv('./'+location+'.csv', header=True, index=False) 
+            df_this_city.to_csv('./'+location+'-daily.csv', header=True, index=False) 
             #print('\n\nexport '+location+' completed!\n\n')
         
         if (store_df == True):
@@ -122,27 +122,32 @@ def retrieve_future_data(api_key,location_list,frequency,location_label = False,
 ##################################
 
 def main():
-    st.title('Daily Visit Predictor')
+    st.title('JGH ED Visit Predictor')
+    model_selectbox = st.sidebar.selectbox('Prediction Model',('Daily', 'Hourly', 'Long-term'))
+
     my_placeholder = st.empty()
     my_placeholder.text("Loading model...")
-    pkl_path = "jgh-prophet-19-12-22.pkl"
+    pkl_path = "daily-19-12-22.pkl"
 
     # read the Prophet model object
     with open(pkl_path, 'rb') as f:
         m = pickle.load(f)
 
-    
-    my_placeholder.text("Fetching the weather forecast...")
-    frequency = 24
-    api_key = '3d51d04f983a478e90f164916191012'
-    location_list = ['Montreal']
-    retrieve_future_data(api_key,location_list,frequency)
+    weather_forecast_on_file = pd.read_csv('Montreal-daily.csv')
+    st.write("First weather date on file: "+weather_forecast_on_file.ds.min())
+    st.write('Today\'s date: '+str(date.today()))
 
-
-
-    weather_forecast = pd.read_csv('Montreal.csv')
-
-    weather_forecast['ds']=pd.to_datetime(weather_forecast['ds'])
+    if str(weather_forecast_on_file.ds.min()) == str(date.today()):
+        st.write('Using weather forecast already on file')
+        weather_forecast = weather_forecast_on_file
+    else:
+        my_placeholder.text("Fetching the weather forecast...")
+        frequency = 24
+        api_key = '3d51d04f983a478e90f164916191012'
+        location_list = ['Montreal']
+        retrieve_future_data(api_key,location_list,frequency)
+        weather_forecast = pd.read_csv('Montreal-daily.csv')
+        weather_forecast['ds']=pd.to_datetime(weather_forecast['ds'])
 
     my_placeholder.text("Making predictions...")
     forecast = m.predict(weather_forecast)
