@@ -134,10 +134,10 @@ def main():
         m = pickle.load(f)
 
     weather_forecast_on_file = pd.read_csv('Montreal-daily.csv')
-    st.write("First weather date on file: "+weather_forecast_on_file.ds.min())
-    st.write('Today\'s date: '+str(date.today()))
+    #st.write("First weather date on file: "+weather_forecast_on_file.ds.min())
+    st.write('Today\'s date: '+str(datetime.now().astimezone(pytz.timezone('US/Eastern')).date()))
 
-    if str(weather_forecast_on_file.ds.min()) == str(date.today()):
+    if str(weather_forecast_on_file.ds.min()) == str(datetime.now().astimezone(pytz.timezone('US/Eastern')).date()):
         st.write('Using weather forecast already on file')
         weather_forecast = weather_forecast_on_file
     else:
