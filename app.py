@@ -124,6 +124,9 @@ def retrieve_future_data(api_key,location_list,frequency,num_of_days,location_la
     return(result_list)
 ##################################
 
+def datetime_to_date(my_datetime):
+    return my_datetime.date()
+
 def main():
     st.title('JGH ED Visit Predictor')
     model = st.sidebar.selectbox('Prediction Model',('2-week daily with weather', '72-hour hourly with weather','1-year daily'))
@@ -216,6 +219,16 @@ def main():
         st.header('Weather Forecast')
         if model == 'daily':
             st.write(weather_forecast)
+            st.subheader('Factors affecting the prediction:')
+            date_picker = st.selectbox('Choose Date',forecast.ds.to_list(),format_func=datetime_to_date)
+            forecast.set_index("ds", inplace=True)
+            daily_factors = forecast[['holidays','maxtempC', 'mintempC', 'totalSnow_cm', 'sunHour', 'uvIndex', 
+               'moon_illumination', 
+               'DewPointC',  'FeelsLikeC', 'HeatIndexC', 'WindChillC', 'WindGustKmph',
+               'cloudcover', 'humidity', 'precipMM', 'pressure', 'tempC', 'visibility',
+               'winddirDegree', 'windspeedKmph']].loc[date_picker].sort_values(ascending=False)
+            st.write('Visits predicted: '+str(forecast.loc[date_picker]['yhat'].round(0)))
+            st.table(daily_factors)
         elif model == 'hourly':
             st.write(weather_forecast.loc[mask])
 
