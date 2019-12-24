@@ -59,7 +59,7 @@ def extract_json_weather_data(data):
 #function to retrive data by date range and location
 #default frequency = 1 hr
 #each month costs 1 request (free trial 500 requests/key, as of 30-May-2019)
-def retrieve_weather_data(api_key,location,frequency):
+def retrieve_weather_data(api_key,location,frequency,num_of_days):
     
     #start_time = datetime.now()
     
@@ -86,7 +86,7 @@ def retrieve_weather_data(api_key,location,frequency):
         #end_d =str(list_mon_end[m])[:10]
         #print('Currently retrieving data for '+location+': from '+start_d+' to '+end_d)
         
-    url_page = 'http://api.worldweatheronline.com/premium/v1/weather.ashx?key='+api_key+'&q='+location+'&format=json&num_of_days=15'+'&tp='+str(frequency)
+    url_page = 'http://api.worldweatheronline.com/premium/v1/weather.ashx?key='+api_key+'&q='+location+'&format=json&num_of_days='+str(num_of_days)+'&tp='+str(frequency)
     json_page = urllib.request.urlopen(url_page)
     json_data = json.loads(json_page.read().decode())
     data= json_data['data']['weather']
@@ -100,11 +100,11 @@ def retrieve_weather_data(api_key,location,frequency):
 
 ##################################
 #main function to retrive the data by location list
-def retrieve_future_data(api_key,location_list,frequency,location_label = False, export_csv = True, store_df = False):
+def retrieve_future_data(api_key,location_list,frequency,num_of_days,location_label = False, export_csv = True, store_df = False):
     result_list = []
     for location in location_list:
         #print('\n\nRetrieving weather data for '+location+'\n\n')
-        df_this_city = retrieve_weather_data(api_key,location,frequency)
+        df_this_city = retrieve_weather_data(api_key,location,frequency,num_of_days)
         
         if (location_label == True):
         # add city name as prefix to the colnames
@@ -126,7 +126,7 @@ def retrieve_future_data(api_key,location_list,frequency,location_label = False,
 
 def main():
     st.title('JGH ED Visit Predictor')
-    model_selectbox = st.sidebar.selectbox('Prediction Model',('Daily', 'Hourly', 'Long-term'))
+    model_selectbox = st.sidebar.selectbox('Prediction Model',('Daily', 'Hourly'))
 
     my_placeholder = st.empty()
     my_placeholder.text("Loading model...")
@@ -151,8 +151,9 @@ def main():
     local_now = datetime.now()
     today = now.date()
     st.write('Currently: '+str(now))
-    st.write('mtl_now: '+str(mtl_now))
-    st.write('local_now: '+str(local_now))
+    #st.write('mtl_now: '+str(mtl_now))
+    #st.write('local_now: '+str(local_now))
+    #st.write('mtl_now + 72 hours: '+str(mtl_now+timedelta(hours=72)))
 
     if str(weather_forecast_on_file.ds.min()) == str(today):
         st.write('Using weather forecast already on file')
@@ -161,12 +162,14 @@ def main():
         my_placeholder.text("Fetching the weather forecast...")
         if model_selectbox == 'Daily':
             frequency = 24
+            num_of_days = 15
         elif model_selectbox == 'Hourly':
             frequency = 1
+            num_of_days = 5
         api_key = '3d51d04f983a478e90f164916191012'
         location_list = ['Montreal']
 
-        retrieve_future_data(api_key,location_list,frequency)
+        retrieve_future_data(api_key,location_list,frequency,num_of_days)
 
         if model_selectbox == 'Daily':
             weather_forecast = pd.read_csv('Montreal-daily.csv')
@@ -179,7 +182,8 @@ def main():
     if model_selectbox == 'Daily':
         forecast = m.predict(weather_forecast)
     elif model_selectbox == 'Hourly':
-        forecast = m.predict(weather_forecast[weather_forecast.ds>=mtl_now])
+        mask = (weather_forecast.ds >= mtl_now) & (weather_forecast.ds <= mtl_now+timedelta(hours=72))
+        forecast = m.predict(weather_forecast.loc[mask])
 
     st.header('Predictions')
 
@@ -192,7 +196,10 @@ def main():
     #st.write(forecast[['ds', 'yhat']])
 
     st.header('Weather Forecast')
-    st.write(weather_forecast)
+    if model_selectbox == 'Daily':
+        st.write(weather_forecast)
+    elif model_selectbox == 'Hourly':
+        st.write(weather_forecast.loc[mask])
     my_placeholder.text("")
 
 
