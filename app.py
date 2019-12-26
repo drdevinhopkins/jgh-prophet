@@ -227,7 +227,7 @@ def main():
                'DewPointC',  'FeelsLikeC', 'HeatIndexC', 'WindChillC', 'WindGustKmph',
                'cloudcover', 'humidity', 'precipMM', 'pressure', 'tempC', 'visibility',
                'winddirDegree', 'windspeedKmph']].loc[date_picker].sort_values(ascending=False)
-            st.write('Visits predicted: '+str(int(forecast.loc[date_picker]['yhat'].round(0))))y
+            st.write('Visits predicted: '+str(int(forecast.loc[date_picker]['yhat'].round(0))))
             st.table(daily_factors)
         elif model == 'hourly':
             st.write(weather_forecast.loc[mask])
