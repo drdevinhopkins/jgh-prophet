@@ -29,22 +29,22 @@ def main():
         pkl_path = "daily-20-01-12.pkl"
     elif model == '72-hour hourly with weather':
         model = 'hourly'
-        pkl_path = "hourly-19-12-22.pkl"
+        pkl_path = "hourly-20-01-12.pkl"
     elif model == '1-year daily':
         model = 'year'
-        pkl_path = "longterm-19-12-22.pkl"
+        pkl_path = "longterm-20-01-12.pkl"
 
     # read the Prophet model object
     with open(pkl_path, 'rb') as f:
         m = pickle.load(f)
 
-    if model == 'daily':
-        weather_forecast_on_file = pd.read_csv('Montreal-daily.csv')
-    elif model == 'hourly':
-        weather_forecast_on_file = pd.read_csv('Montreal-hourly.csv')
+    # if model == 'daily':
+    #     weather_forecast_on_file = pd.read_csv('Montreal-daily.csv')
+    # elif model == 'hourly':
+    #     weather_forecast_on_file = pd.read_csv('Montreal-hourly.csv')
 
-    if model in ['daily','hourly']:
-        st.write("First weather date on file: "+weather_forecast_on_file.ds.min())
+    # if model in ['daily','hourly']:
+    #     st.write("First weather date on file: "+weather_forecast_on_file.ds.min())
 
     now = datetime.now().astimezone(pytz.timezone('US/Eastern'))
     mtl_now = now.replace(tzinfo=None)
@@ -56,10 +56,10 @@ def main():
     #st.write('mtl_now + 72 hours: '+str(mtl_now+timedelta(hours=72)))
 
     if model in ['daily','hourly']:
-        if str(weather_forecast_on_file.ds.min()) == str(today):
-            st.write('Using weather forecast already on file')
-            weather_forecast = weather_forecast_on_file
-        else:
+        # if str(weather_forecast_on_file.ds.min()) == str(today):
+        #     st.write('Using weather forecast already on file')
+        #     weather_forecast = weather_forecast_on_file
+        # else:
             my_placeholder.text("Fetching the weather forecast...")
             if model == 'daily':
                 frequency = 24
@@ -98,7 +98,7 @@ def main():
     elif model == 'year':
         predictions = forecast[forecast.ds >= mtl_now]
         x = [str(a) for a in predictions.ds.to_list()]
-    y = forecast.yhat.to_list()
+    y = predictions.yhat.to_list()
 
     fig = go.Figure(data=[go.Scatter(x=x, y=y)])
 
