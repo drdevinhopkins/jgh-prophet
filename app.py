@@ -26,7 +26,7 @@ def main():
 
     if model == '2-week daily with weather':
         model = 'daily'
-        pkl_path = "daily-19-12-22.pkl"
+        pkl_path = "daily-20-01-12.pkl"
     elif model == '72-hour hourly with weather':
         model = 'hourly'
         pkl_path = "hourly-19-12-22.pkl"
