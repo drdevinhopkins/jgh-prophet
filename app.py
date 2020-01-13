@@ -19,18 +19,18 @@ def datetime_to_date(my_datetime):
 
 def main():
     st.title('JGH ED Visit Predictor')
-    model = st.sidebar.selectbox('Prediction Model',('2-week daily with weather', '72-hour hourly with weather','1-year daily'))
+    model_select = st.sidebar.selectbox('Prediction Model',('2-week daily with weather', '72-hour hourly with weather','1-year daily'))
 
     my_placeholder = st.empty()
     my_placeholder.text("Loading model...")
 
-    if model == '2-week daily with weather':
+    if model_select == '2-week daily with weather':
         model = 'daily'
         pkl_path = "daily-20-01-12.pkl"
-    elif model == '72-hour hourly with weather':
+    elif model_select == '72-hour hourly with weather':
         model = 'hourly'
         pkl_path = "hourly-20-01-12.pkl"
-    elif model == '1-year daily':
+    elif model_select == '1-year daily':
         model = 'year'
         pkl_path = "longterm-20-01-12.pkl"
 
@@ -98,7 +98,7 @@ def main():
     elif model == 'year':
         predictions = forecast[forecast.ds >= mtl_now]
         x = [str(a) for a in predictions.ds.to_list()]
-    y = predictions.yhat.to_list()
+    y = forecast.yhat.to_list()
 
     fig = go.Figure(data=[go.Scatter(x=x, y=y)])
 
