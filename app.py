@@ -94,7 +94,7 @@ def main():
         #forecast = m.predict(future.loc[mask])
         forecast = m.predict(future)
 
-    st.header('Predictions')
+    # st.header('Predictions')
 
     if model in ['daily','hourly']:
         x = [str(a) for a in forecast.ds.to_list()]
@@ -104,26 +104,75 @@ def main():
     y = forecast.yhat.to_list()
 
     fig = go.Figure(data=[go.Scatter(x=x, y=y)])
+    fig.update_layout(title_text="ED Visits")
 
     st.plotly_chart(fig)
     #st.write(forecast[['ds', 'yhat']])
 
     if model in ['daily','hourly']:
-        st.header('Weather Forecast')
+        # st.header('Weather Forecast')
         if model == 'daily':
-            st.write(weather_forecast)
+
+            fig2 = go.Figure()
+            fig2.update_layout(title_text="Temperature",
+                  title_font_size=18)
+            for weather_element in ['FeelsLikeC', 'maxtempC', 'mintempC']:
+                fig2.add_trace(go.Scatter(x=weather_forecast.ds.to_list(), y=weather_forecast[weather_element].to_list(), mode='lines+markers',
+                    name=weather_element, showlegend=True))
+            st.plotly_chart(fig2)
+
+            fig3 = go.Figure()
+            fig3.update_layout(title_text="Precipitation",
+                  title_font_size=18)
+            for weather_element in ['totalSnow_cm', 'precipMM']:
+                fig3.add_trace(go.Scatter(x=weather_forecast.ds.to_list(), y=weather_forecast[weather_element].to_list(), mode='lines+markers',
+                    name=weather_element, showlegend=True))
+            st.plotly_chart(fig3)
+
+            fig4 = go.Figure()
+            fig4.update_layout(title_text="Other Weather Elements",
+                  title_font_size=18)
+            for weather_element in ['sunHour', 'uvIndex', 'moon_illumination', 'WindGustKmph', 'windspeedKmph', 'visibility']:
+                fig4.add_trace(go.Scatter(x=weather_forecast.ds.to_list(), y=weather_forecast[weather_element].to_list(), mode='lines+markers',
+                    name=weather_element, showlegend=True))
+            st.plotly_chart(fig4)
+
+            # st.write(weather_forecast)
             st.subheader('Factors affecting the prediction:')
             date_picker = st.selectbox('Choose Date',forecast.ds.to_list(),format_func=datetime_to_date)
             forecast.set_index("ds", inplace=True)
             daily_factors = forecast[['holidays','maxtempC', 'mintempC', 'totalSnow_cm', 'sunHour', 'uvIndex', 
-               'moon_illumination', 
-               'DewPointC',  'FeelsLikeC', 'HeatIndexC', 'WindChillC', 'WindGustKmph',
+               'moon_illumination', 'FeelsLikeC', 'WindGustKmph',
                'cloudcover', 'humidity', 'precipMM', 'pressure', 'tempC', 'visibility',
-               'winddirDegree', 'windspeedKmph']].loc[date_picker].sort_values(ascending=False)
-            st.write('Visits predicted: '+str(int(forecast.loc[date_picker]['yhat'].round(0))))
-            st.table(daily_factors)
+               'winddirDegree', 'windspeedKmph']].loc[date_picker].apply(lambda x: abs(x)).sort_values(ascending=False)
+            st.write('Visits predicted: ' + str(int(forecast.loc[date_picker]['yhat'].round(0))))
+            st.write('Top 5 Regressors:')
+            st.table(daily_factors.head())
         elif model == 'hourly':
-            st.write(weather_forecast.loc[mask])
+            # st.write(weather_forecast.loc[mask])
+            fig2 = go.Figure()
+            fig2.update_layout(title_text="Temperature",
+                  title_font_size=18)
+            for weather_element in ['FeelsLikeC', 'maxtempC', 'mintempC']:
+                fig2.add_trace(go.Scatter(x=weather_forecast.ds.to_list(), y=weather_forecast[weather_element].to_list(), mode='lines+markers',
+                    name=weather_element, showlegend=True))
+            st.plotly_chart(fig2)
+
+            fig3 = go.Figure()
+            fig3.update_layout(title_text="Precipitation",
+                  title_font_size=18)
+            for weather_element in ['totalSnow_cm', 'precipMM']:
+                fig3.add_trace(go.Scatter(x=weather_forecast.ds.to_list(), y=weather_forecast[weather_element].to_list(), mode='lines+markers',
+                    name=weather_element, showlegend=True))
+            st.plotly_chart(fig3)
+
+            fig4 = go.Figure()
+            fig4.update_layout(title_text="Other Weather Elements",
+                  title_font_size=18)
+            for weather_element in ['sunHour', 'uvIndex', 'moon_illumination', 'WindGustKmph', 'windspeedKmph', 'visibility']:
+                fig4.add_trace(go.Scatter(x=weather_forecast.ds.to_list(), y=weather_forecast[weather_element].to_list(), mode='lines+markers',
+                    name=weather_element, showlegend=True))
+            st.plotly_chart(fig4)
 
     if model == 'year':
         fig2 = m.plot_components(forecast)
