@@ -76,7 +76,9 @@ def main():
                 weather_forecast = pd.read_csv('Montreal-daily.csv')
             elif model == 'hourly':
                 weather_forecast = pd.read_csv('Montreal-hourly.csv')
-            weather_forecast['ds']=pd.to_datetime(weather_forecast['ds'])
+            weather_forecast['ds'] = pd.to_datetime(weather_forecast['ds'])
+            weather_forecast['ds'].apply(lambda x: x.tz_localize('EST'))
+            #weather_forecast['ds'].apply(lambda x: x.astimezone(pytz.timezone('US/Eastern')))
 
     my_placeholder.text("Making predictions...")
     
